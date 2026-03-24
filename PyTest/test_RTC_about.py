@@ -1,20 +1,25 @@
-from selenium import webdriver
-driver = webdriver.Chrome()
+from playwright.sync_api import sync_playwright
 
 class TestRTCAbout:
 
-    def about_page_status(self):
+    def about_page_status(self, page):
 
         base_url = "https://rtctek.com"
 
-        driver.get(base_url)
-        driver.maximize_window()
+        # Open website
+        page.goto(base_url)
+
+        # Set browser size (Playwright alternative to maximize)
+        page.set_viewport_size({"width": 1920, "height": 1080})
 
         # Click on About Us
-        driver.find_element("xpath", "//a[text()='About Us']").click()
+        page.click("text=About Us")
 
-        # Get current URL after click
-        current_url = driver.current_url
+        # Wait for page to load
+        page.wait_for_load_state("load")
+
+        # Get current URL
+        current_url = page.url
         print(f"Current URL: {current_url}")
 
         # Expected URL
@@ -25,6 +30,14 @@ class TestRTCAbout:
         # Assertion
         assert current_url == expected_url, f"URL mismatch: {current_url} != {expected_url}"
 
+
 def test_RTC_about():
-    obj = TestRTCAbout()
-    obj.about_page_status()
+
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=False)
+        page = browser.new_page()
+
+        obj = TestRTCAbout()
+        obj.about_page_status(page)
+
+        browser.close()

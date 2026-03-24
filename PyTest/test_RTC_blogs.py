@@ -1,48 +1,25 @@
-# import requests
-# import webbrowser
-# from selenium import webdriver
-# driver = webdriver.Chrome()  # Ensure you have the appropriate WebDriver installed and in your PATH
-
-# class TestRTCBlogs:
-
-#     def blogs_page_status(self):
-
-#         driver.get("https://rtctek.com/")
-#         driver.maximize_window()
-#         driver.find_element("xpath", "//a[text()='Knowledge Center']").click()
-#         url = driver.current_url
-#         print(f"Current URL: {url}")
-#         url = "https://rtctek.com/blogs/"
-
-#         # response = requests.get(url, headers=headers)
-#         # print(f"URL: {response.url}")
-
-#         # #assert response.status_code == 200
-#         # assert response.url == "https://rtctek.com/blogs/"
-#         # webbrowser.open(response.url)
-
-# def test_RTC_blogs():
-#     object1 = TestRTCBlogs()
-#     object1.blogs_page_status()
-
-from selenium import webdriver
-
-driver = webdriver.Chrome()
+from playwright.sync_api import sync_playwright
 
 class TestRTCBlogs:
 
-    def blogs_page_status(self):
+    def blogs_page_status(self, page):
 
         base_url = "https://rtctek.com"
 
-        driver.get(base_url)
-        driver.maximize_window()
+        # Open website
+        page.goto(base_url)
+
+        # Set browser size (equivalent to maximize)
+        page.set_viewport_size({"width": 1920, "height": 1080})
 
         # Click on Knowledge Center
-        driver.find_element("xpath", "//a[text()='Knowledge Center']").click()
+        page.click("text=Knowledge Center")
 
-        # Get current URL after click
-        current_url = driver.current_url
+        # Wait for navigation
+        page.wait_for_load_state("load")
+
+        # Get current URL
+        current_url = page.url
         print(f"Current URL: {current_url}")
 
         # Expected URL
@@ -55,5 +32,12 @@ class TestRTCBlogs:
 
 
 def test_RTC_blogs():
-    obj = TestRTCBlogs()
-    obj.blogs_page_status()
+
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=False)  # opens browser
+        page = browser.new_page()
+
+        obj = TestRTCBlogs()
+        obj.blogs_page_status(page)
+
+        browser.close()
